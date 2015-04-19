@@ -1,6 +1,5 @@
 import java.io.BufferedReader;
 import java.io.FileReader;
-import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
@@ -34,6 +33,8 @@ public class Store implements NbServerCallback, ProtocolDefs{
   private final static String MSG_BIND_ERR          =   "Store unable to listen on given port\n";
   private final static String MSG_BIND_OK           =   "Store waiting for incoming connections\n";
 
+  
+  private final static long   DUMMY_ITEMID          =   0;  
   
   
   public static void main(String[] args){
@@ -252,10 +253,84 @@ public class Store implements NbServerCallback, ProtocolDefs{
   
   
   
+  /**
+   * Generate Buy Error And Flip
+   * @param responseData
+   * @param id
+   */
+  private void buyError(ByteBuffer responseData, long id){
+    XDRParser.putVarString(responseData, RSP_BUY_NOTOK);
+    XDRParser.putVarString(responseData, String.valueOf(id));
+    responseData.flip();
+  }
   
   
   
   private ByteBuffer buy(ByteBuffer requestData){
+    
+    
+    // Construct Response Data
+    ByteBuffer responseData = ByteBuffer.allocate(1024);
+    responseData.putInt(RT_STORE_RSP_BUY);
+    
+    
+    // Parse Data
+    int    idIdx  = 0;
+    String ccn;
+    
+    try {
+      
+      idIdx  =  requestData.getInt();
+      ccn    =  XDRParser.getFixString( requestData, 16 );
+      
+    } catch (Exception e) {
+      
+      // Any Error From Parsing, Like A Lesser-than-16-digit CCN
+      buyError(responseData, DUMMY_ITEMID);
+      return responseData;
+      
+    }
+    
+    
+    // Suppose ID Is Index That Starts From 1
+    Iterator<Entry<Long, Double>> itr = this.stockMap.entrySet().iterator();
+    
+    
+    int idx = 1;
+    Entry<Long, Double> item = null;
+    while( itr.hasNext() ){
+      item = itr.next();
+      if ( idIdx == idx )  break;
+      ++idx;
+    }
+    
+    
+    long    id;
+    double  price;
+    if ( idx > this.stockMap.size() ){
+      
+      // ID Out Of Bound
+      buyError(responseData, DUMMY_ITEMID);
+      return responseData;
+      
+    }
+    
+    
+    // Found ID And Price, Ask For Transaction
+    id    = item.getKey();
+    price = item.getValue();
+    
+    
+    // Get Reply From Bank
+    if ( !rpcTransaction(id, price, ccn) ){
+      buyError(responseData, id);
+      return responseData;
+    }
+
+    
+    // TODO Do Content Request ------------------
+    
+    
     return null;
     
   }
@@ -264,28 +339,48 @@ public class Store implements NbServerCallback, ProtocolDefs{
   
   
   
-  private boolean rpcTransaction( long id, Double price, String ccn ) throws Exception {
+  private boolean rpcTransaction( long id, Double price, String ccn ){
     
+    try{
+      
+      
+      // Construct Register Request Data
+      ByteBuffer requestData = ByteBuffer.allocate(1024);
+      requestData.putInt      (RT_BANK_REQ_TRANS);
+      
+      
+      // Put Arguments In
+      XDRParser.putFixString(requestData, Long.toString(id));
+      requestData.putDouble(price);
+      XDRParser.putFixString(requestData, ccn);
+      
+      
+      // Send Request To Bank
+      requestData.flip();
+      ByteBuffer responseData = this.bankClient.request(requestData);
+      
+      
+      // Parse Response From Bank
+      if ( responseData.getInt() != RT_BANK_RSP_TRANS ){
+        return false;
+      }
+      
+      if ( XDRParser.getVarString(requestData).equals(RSP_TRANS_OK) ){
+        return true;
+      } else {
+        return false;
+      }
+      
+      
+    } catch ( Exception e ){
+      return false;
+    }
     
-    // Construct Register Request Data
-    ByteBuffer requestData = ByteBuffer.allocate(1024);
-    requestData.putInt      (RT_BANK_REQ_TRANS);
+
     
-    
-    // Put Arguments In
-    XDRParser.putFixString(requestData, Long.toString(id));
-    requestData.putDouble(price);
-    XDRParser.putFixString(requestData, ccn);
-    
-    
-    // Send Request To Bank
-    requestData.flip();
-    ByteBuffer responseData = this.bankClient.request(requestData);
-    
-    
-    
-    return false;
   }
+  
+  
   /**
    * Consume Request And Generate Response Data, NbServer Callback.
    * @param requestData

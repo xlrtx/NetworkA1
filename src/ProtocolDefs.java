@@ -26,11 +26,18 @@ public interface ProtocolDefs {
   public final static int RT_BANK_RSP_TRANS  = 9;
   
   
-  // Response Message Definition
+  // Response Message Definition For NS
   public final static String RSP_LKUP_OK       =   "OK\n";
   public final static String RSP_LKUP_NOTOK    =   "Error: Process has not registered with the Name Server\n";
   public final static String RSP_REG_OK        =   "OK\n";
   public final static String RSP_REG_NOTOK     =   "NOT OK\n";
   
+  //Response Message Definition For Bank
+  public final static String RSP_TRANS_OK      =   "OK\n";
+  public final static String RSP_TRANS_NOTOK   =   "NOT OK\n";
   
+  
+  //Response Message Definition For Store
+  public final static String RSP_BUY_OK      =   "OK\n";
+  public final static String RSP_BUY_NOTOK   =   "NOT OK\n";
 }

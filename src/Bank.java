@@ -18,6 +18,8 @@ public class Bank implements NbServerCallback, ProtocolDefs{
   private final static String MSG_BIND_ERR      =   "Bank unable to listen on given port\n";
   private final static String MSG_BIND_OK       =   "Bank waiting for incoming connections\n";
   
+  private final static String MSG_TRANS_OK      =   "OK";
+  private final static String MSG_TRANS_NOTOK   =   "NOT OK";
   
   public static void main(String[] args) {
     
@@ -95,17 +97,76 @@ public class Bank implements NbServerCallback, ProtocolDefs{
 
   }
 
+  
 
-  private ByteBuffer transaction(ByteBuffer requestData) {
+  /**
+   * The transaction handler
+   * @param requestData     Data send from client
+   * @return                Data send to   client
+   * @throws Exception
+   */
+  private ByteBuffer transaction(ByteBuffer requestData){
+
+    Long    id = null;
+    Double  price;
+    String  ccn;
+    
+    
+    // Return Message
+    String retMsg = "";
+    
+    
+    try{
+      
+      
+      // Parse Data
+      id      =   Long.parseLong( XDRParser.getFixString(requestData, 10) );
+      price   =   requestData.getDouble();
+      ccn     =   XDRParser.getFixString(requestData, 16);
+      System.out.printf("Bank:   Trans request, id = %d, price = %f, cnn = %s\n", id, price, ccn);
+      
+      
+      // Check Item Id
+      if ( id % 2 == 0 ){
+        
+        // Even
+        retMsg = RSP_TRANS_NOTOK;
+        System.out.println(MSG_TRANS_NOTOK);
+        
+      } else {
+        
+        // Odd
+        retMsg = RSP_TRANS_OK;
+        System.out.println(MSG_TRANS_OK);
+        
+      }
+      
+      
+    } catch ( Exception e ){
+      
+      retMsg = RSP_TRANS_NOTOK;
+      System.out.println(MSG_TRANS_NOTOK);
+      
+    }
 
     
-
-    //Parse Data
-    Long    id      =   Long.parseLong( XDRParser.getFixString(requestData, 10) );
-    Double  price   =   requestData.getDouble();
-    String  ccn     =   XDRParser.getFixString(requestData, 16);
-    InetSocketAddress address = this.serverMap.get(name);
+    // Construct Response Data
+    ByteBuffer responseData = ByteBuffer.allocate(1024);
+    responseData.putInt(RT_BANK_RSP_TRANS);
+    XDRParser.putVarString(responseData, retMsg);
+    
+    
+    // Flip The Data
+    responseData.flip();
+    
+    
+    return responseData;
+    
+    
   }
+  
+  
+  
   
   /**
    * Consume Request And Generate Response Data, NbServer Callback.

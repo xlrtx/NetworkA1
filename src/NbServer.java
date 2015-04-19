@@ -3,7 +3,6 @@
  * @author s4337746
  *
  */
-
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
@@ -13,7 +12,7 @@ import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.nio.charset.Charset;
-
+//TODO: Name server register and lookup function should not throw
 public class NbServer {
 
   private final static boolean DEBUG = true;

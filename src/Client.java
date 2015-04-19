@@ -1,4 +1,3 @@
-import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
@@ -30,10 +29,8 @@ public class Client implements ProtocolDefs {
   
   public static void main(String[] args){
     
-    Client myClient = null;
-    
     try {
-      myClient = new Client(args);
+      new Client(args);
       // TODO some stuff here
     } catch (Exception e) {
       System.err.println(e.getMessage());
@@ -86,7 +83,7 @@ public class Client implements ProtocolDefs {
     try{
       this.storeAddr = NetworkUtils.rpcLookup("Store", this.nsAddr);
     }catch(Exception e){
-      // TODO Better Distinguish Fail And Not Exist
+      // TODO Better Distinguish Fail And Not Exist ------------------
       throw new Exception(MSG_CONTENT_NOREG);
     }
     
@@ -146,13 +143,14 @@ public class Client implements ProtocolDefs {
     
     
     // Put Item Id And Credit Card Number
-    XDRParser.putFixString( requestData, Integer.toString(itemId) );
+    requestData.putInt(itemId);
     XDRParser.putFixString( requestData, ccn );
     
     
     // Send Request
     ByteBuffer responseData = this.storeClient.request(requestData);
     
+    //TODO not finish ------------------
     
   }
 
