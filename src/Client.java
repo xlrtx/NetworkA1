@@ -42,9 +42,9 @@ public class Client implements ProtocolDefs {
   
   
   /**
-   * Store Constructor
-   * @param args        Port And Stock File Path
-   * @throws Exception  On Argument Error And File Loading Error
+   * Client Constructor
+   * @param args        Port And Request Type
+   * @throws Exception  On Argument Error
    */
   Client(String[] args) throws Exception{
 
@@ -147,7 +147,7 @@ public class Client implements ProtocolDefs {
     // Put Item Id And Credit Card Number
     requestData.putInt(itemId);
     XDRParser.putFixString( requestData, ccn );
-    
+    requestData.flip();
     
     try{
       
@@ -158,12 +158,14 @@ public class Client implements ProtocolDefs {
       // When Wrong Response Packet ID
       if ( responseData.getInt() != RT_STORE_RSP_BUY ) {
         rpcBuyItemErr(DUMMY_ITEMID);
+        return;
       }
 
       
       // When Buy Fails
       if ( !XDRParser.getVarString(responseData).equals(RSP_BUY_OK) ){
         rpcBuyItemErr( Long.parseLong(XDRParser.getFixString(responseData, LEN_ITEMID)) );
+        return;
       }
       
       
@@ -195,6 +197,7 @@ public class Client implements ProtocolDefs {
     // Construct Request Data
     ByteBuffer requestData = ByteBuffer.allocate(1024);
     requestData.putInt(RT_STORE_REQ_QUERY);
+    requestData.flip();
     
     
     // Send Request

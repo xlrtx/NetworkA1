@@ -67,6 +67,7 @@ public class Bank implements NbServerCallback, ProtocolDefs{
     }catch(NumberFormatException e){
       throw new Exception(MSG_ARGUMENT_ERR);
     }
+    this.myAddr = new InetSocketAddress("127.0.0.1", port);
     
     
     // Get Name Server Port

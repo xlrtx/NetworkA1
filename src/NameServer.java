@@ -9,7 +9,8 @@ import java.util.HashMap;
  *
  */
 public class NameServer implements NbServerCallback, ProtocolDefs{
- 
+  //TODO: Name server register and lookup function should not throw
+  
   //Non-blocking Server To Handle The Requests
   NbServer myNbServer;
   HashMap<String, InetSocketAddress> serverMap;

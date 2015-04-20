@@ -377,7 +377,7 @@ public class Store implements NbServerCallback, ProtocolDefs{
       }
       
       
-      if ( XDRParser.getVarString(responseData) != RSP_FETCH_OK ){
+      if ( !XDRParser.getVarString(responseData).equals(RSP_FETCH_OK) ){
         return null;
       }
       
@@ -436,7 +436,7 @@ public class Store implements NbServerCallback, ProtocolDefs{
         return false;
       }
       
-      if ( XDRParser.getVarString(requestData).equals(RSP_TRANS_OK) ){
+      if ( XDRParser.getVarString(responseData).equals(RSP_TRANS_OK) ){
         return true;
       } else {
         return false;

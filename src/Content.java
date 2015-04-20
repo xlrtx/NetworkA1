@@ -52,7 +52,7 @@ public class Content implements NbServerCallback, ProtocolDefs{
     
     //Create Non-blocking Server, And Assign Callback.
     this.myNbServer = new NbServer(this);
-    
+    this.contentMap = new HashMap<>();
     
     // Check Argument Count
     int argCount = 0;
@@ -69,6 +69,7 @@ public class Content implements NbServerCallback, ProtocolDefs{
     }catch(NumberFormatException e){
       throw new Exception(MSG_ARGUMENT_ERR);
     }
+    this.myAddr = new InetSocketAddress("127.0.0.1", port);
     
     
     // Get Stock File Path And Load To Map
@@ -179,14 +180,14 @@ public class Content implements NbServerCallback, ProtocolDefs{
       
       
       // Fill Up Packet
-      XDRParser.putVarString(requestData, RSP_FETCH_OK);
+      XDRParser.putVarString(responseData, RSP_FETCH_OK);
       XDRParser.putFixString(responseData, id.toString());
-      XDRParser.putVarString(requestData, content);
+      XDRParser.putVarString(responseData, content);
       responseData.flip();
       
     } catch ( Exception e ) {
       
-      XDRParser.putVarString(requestData, RSP_FETCH_NOTOK);
+      XDRParser.putVarString(responseData, RSP_FETCH_NOTOK);
       responseData.flip();
       
     }

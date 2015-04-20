@@ -49,7 +49,7 @@ public class NetworkUtils implements ProtocolDefs {
       // Get Address
       String    addr  = XDRParser.getVarString(responseData);
       String[]  split = addr.split(":");
-      return new InetSocketAddress(split[0], Integer.parseInt(split[1]));
+      return new InetSocketAddress(split[0].replace("/", ""), Integer.parseInt(split[1]));
     }else{
       throw new Exception();
     }
