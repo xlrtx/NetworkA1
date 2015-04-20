@@ -23,10 +23,10 @@ public class Bank implements NbServerCallback, ProtocolDefs{
   
   public static void main(String[] args) {
     
-    NameServer myBank = null;
+    Bank myBank = null;
     
     try {
-      myBank = new NameServer(args);
+      myBank = new Bank(args);
       System.err.println(MSG_BIND_OK);
       myBank.myNbServer.start();
     } catch (Exception e) {

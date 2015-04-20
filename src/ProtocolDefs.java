@@ -26,18 +26,39 @@ public interface ProtocolDefs {
   public final static int RT_BANK_RSP_TRANS  = 9;
   
   
+  // Request And Response Type Definition For Content
+  public final static int RT_CONT_REQ_FETCH  = 10;
+  public final static int RT_CONT_RSP_FETCH  = 11;
+  
+  
   // Response Message Definition For NS
   public final static String RSP_LKUP_OK       =   "OK\n";
   public final static String RSP_LKUP_NOTOK    =   "Error: Process has not registered with the Name Server\n";
   public final static String RSP_REG_OK        =   "OK\n";
   public final static String RSP_REG_NOTOK     =   "NOT OK\n";
   
-  //Response Message Definition For Bank
+  
+  // Response Message Definition For Bank
   public final static String RSP_TRANS_OK      =   "OK\n";
   public final static String RSP_TRANS_NOTOK   =   "NOT OK\n";
   
   
-  //Response Message Definition For Store
+  // Response Message Definition For Store
   public final static String RSP_BUY_OK      =   "OK\n";
-  public final static String RSP_BUY_NOTOK   =   "NOT OK\n";
+  public final static String RSP_BUY_NOTOK   =   "ransaction aborted";
+  
+  
+  // Response Message Definition For Content
+  public final static String RSP_FETCH_OK      =   "OK\n";
+  public final static String RSP_FETCH_NOTOK   =   "NOT OK\n";
+  
+  
+  // Define The ID Length
+  public final static int    LEN_ITEMID       =   10;
+  
+  
+  // Fake Item ID When Not Be Able To Get
+  public final static long   DUMMY_ITEMID     =   1111111111;
+  
+  
 }

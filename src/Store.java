@@ -34,8 +34,6 @@ public class Store implements NbServerCallback, ProtocolDefs{
   private final static String MSG_BIND_OK           =   "Store waiting for incoming connections\n";
 
   
-  private final static long   DUMMY_ITEMID          =   0;  
-  
   
   public static void main(String[] args){
     
@@ -260,7 +258,7 @@ public class Store implements NbServerCallback, ProtocolDefs{
    */
   private void buyError(ByteBuffer responseData, long id){
     XDRParser.putVarString(responseData, RSP_BUY_NOTOK);
-    XDRParser.putVarString(responseData, String.valueOf(id));
+    XDRParser.putFixString(responseData, String.valueOf(id));
     responseData.flip();
   }
   
@@ -328,23 +326,96 @@ public class Store implements NbServerCallback, ProtocolDefs{
     }
 
     
-    // TODO Do Content Request ------------------
+    // Get Content From Content Server
+    String content = rpcFetch(id);
+    if ( content == null ) {
+      buyError(responseData, id);
+      return responseData;
+    }
     
     
-    return null;
+    // Reply Content To Client
+    XDRParser.putVarString(responseData, RSP_BUY_OK);
+    XDRParser.putFixString(responseData, String.valueOf(id));
+    responseData.putDouble(price);
+    XDRParser.putVarString(responseData, content);
+    responseData.flip();
     
+    
+    return responseData;
+    
+  }
+  
+  
+  
+  /**
+   * Fetch Data Of Given ItemID From Content Server
+   * @param id      Content ID
+   * @return        Content Data
+   */
+  private String rpcFetch( Long id ){
+    
+    try{
+      
+      
+      // Construct Request Data
+      ByteBuffer requestData = ByteBuffer.allocate(1024);
+      requestData.putInt      (RT_CONT_REQ_FETCH);
+      
+      
+      // Put Arguments In
+      XDRParser.putFixString(requestData, Long.toString(id));
+      
+      
+      // Send Request To Content
+      requestData.flip();
+      ByteBuffer responseData = this.contentClient.request(requestData);
+      
+      
+      if ( responseData.getInt() != RT_CONT_RSP_FETCH ) {
+        return null;
+      }
+      
+      
+      if ( XDRParser.getVarString(responseData) != RSP_FETCH_OK ){
+        return null;
+      }
+      
+      
+      Long   rspID        =     Long.parseLong( XDRParser.getFixString(responseData, LEN_ITEMID) );
+      String rspContent   =     XDRParser.getVarString(responseData);
+      System.out.printf("Store:  Got Content For Item %d, Data = %s", rspID, rspContent);
+      return rspContent;
+      
+      
+    } catch ( Exception e ) {
+      
+      return null;
+    }
+    
+    
+
   }
   
   
   
   
   
+  /**
+   * Remote Procedure Call
+   * Call Bank For Transaction
+   * 
+   * @param id      Item Id
+   * @param price   Item Price
+   * @param ccn     Credit Card Number
+   * @return        Return True For Success, False For Failure
+   */
   private boolean rpcTransaction( long id, Double price, String ccn ){
     
     try{
       
       
-      // Construct Register Request Data
+      // Construct Request Data
       ByteBuffer requestData = ByteBuffer.allocate(1024);
       requestData.putInt      (RT_BANK_REQ_TRANS);
       

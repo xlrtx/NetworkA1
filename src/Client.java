@@ -24,7 +24,6 @@ public class Client implements ProtocolDefs {
   private final static String MSG_ARGUMENT_ERR      =   "Invalid command line arguments\n";
   private final static String MSG_CONTENT_NOREG     =   "Client unable to connect with NameServer\n";
   private final static String MSG_CONN_STORE_ERR    =   "Client unable to connect with Store\n";
-  private final static String MSG_BUY_ERR           =   "transaction aborted";
   
   
   public static void main(String[] args){
@@ -116,12 +115,9 @@ public class Client implements ProtocolDefs {
       
       
       // Buy An Item With Item Id And Credit Card Number
-      try{
-        rpcBuyItem( this.reqType, "1111111111111111" );
-      }catch ( Exception e ) {
-        throw new Exception(MSG_BUY_ERR);
-      }
-      
+
+      rpcBuyItem( this.reqType, "1111111111111111" );
+
       
     }
 
@@ -129,12 +125,18 @@ public class Client implements ProtocolDefs {
   }
   
   
-  private void rpcBuyItem(int itemId, String ccn) throws Exception {
+  private void rpcBuyItemErr(Long id){
+    System.out.printf("%d transaction aborted\n", id);
+  }
+  
+  
+  private void rpcBuyItem(int itemId, String ccn){
     
     
     // Test If Credit Card Number Is Valid
+    // TODO: Better Distinguish CCN-Fault And Buy-Fault
     if ( ccn.length() != 16 ){
-      throw new Exception();
+      rpcBuyItemErr(DUMMY_ITEMID);
     }
     
     // Construct Request Data
@@ -147,12 +149,43 @@ public class Client implements ProtocolDefs {
     XDRParser.putFixString( requestData, ccn );
     
     
-    // Send Request
-    ByteBuffer responseData = this.storeClient.request(requestData);
+    try{
+      
+      // Send Request
+      ByteBuffer responseData = this.storeClient.request(requestData);
+      
+      
+      // When Wrong Response Packet ID
+      if ( responseData.getInt() != RT_STORE_RSP_BUY ) {
+        rpcBuyItemErr(DUMMY_ITEMID);
+      }
+
+      
+      // When Buy Fails
+      if ( !XDRParser.getVarString(responseData).equals(RSP_BUY_OK) ){
+        rpcBuyItemErr( Long.parseLong(XDRParser.getFixString(responseData, LEN_ITEMID)) );
+      }
+      
+      
+      // Buy Success, Parse Reply
+      Long   id       =   Long.parseLong( XDRParser.getFixString(responseData, LEN_ITEMID) );
+      Double price    =   responseData.getDouble();
+      String content  =   XDRParser.getVarString(responseData);
+      
+      System.out.printf("%d ($ %f) CONTENT %s\n", id, price, content);
+      
+      
+    } catch ( Exception e ) {
+      
+      // TODO: Better Distinguish Others-Fault And Buy-Fault
+      rpcBuyItemErr(DUMMY_ITEMID);
+    }
+
     
-    //TODO not finish ------------------
+    
     
   }
+  
 
 
 
@@ -181,7 +214,7 @@ public class Client implements ProtocolDefs {
     // Get Items Out
     HashMap<Long, Double> itemMap = new HashMap<Long, Double>();
     while ( itemCount != 0 ){
-      Long      id      =   Long.parseLong( XDRParser.getFixString(responseData, 10) );
+      Long      id      =   Long.parseLong( XDRParser.getFixString(responseData, LEN_ITEMID) );
       Double    price   =   responseData.getDouble();
       itemMap.put(id, price);
       itemCount --;
