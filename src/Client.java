@@ -152,7 +152,7 @@ public class Client implements ProtocolDefs {
     try{
       
       // Send Request
-      ByteBuffer responseData = this.storeClient.request(requestData);
+      ByteBuffer responseData = this.storeClient.request(requestData, true);
       
       
       // When Wrong Response Packet ID
@@ -201,7 +201,7 @@ public class Client implements ProtocolDefs {
     
     
     // Send Request
-    ByteBuffer responseData = this.storeClient.request(requestData);
+    ByteBuffer responseData = this.storeClient.request(requestData, true);
     
     
     // Check Protocol Number

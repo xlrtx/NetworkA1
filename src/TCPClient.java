@@ -39,7 +39,7 @@ public class TCPClient {
   
   
   
-  public ByteBuffer request(ByteBuffer requestData) throws IOException{
+  public ByteBuffer request(ByteBuffer requestData, boolean autoClose) throws IOException{
     
     
     BufferedInputStream in;
@@ -64,9 +64,15 @@ public class TCPClient {
     responseData.flip();
  
     // Close everything
-    out.close();
-    in.close();
-    clientSocket.close();
+
+    
+    
+    if (autoClose){
+      out.close();
+      in.close();
+      clientSocket.close();
+    }
+    
     
     return responseData;
     

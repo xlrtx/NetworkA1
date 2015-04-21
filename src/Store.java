@@ -369,7 +369,7 @@ public class Store implements NbServerCallback, ProtocolDefs{
       
       // Send Request To Content
       requestData.flip();
-      ByteBuffer responseData = this.contentClient.request(requestData);
+      ByteBuffer responseData = this.contentClient.request(requestData, false);
       
       
       if ( responseData.getInt() != RT_CONT_RSP_FETCH ) {
@@ -428,7 +428,7 @@ public class Store implements NbServerCallback, ProtocolDefs{
       
       // Send Request To Bank
       requestData.flip();
-      ByteBuffer responseData = this.bankClient.request(requestData);
+      ByteBuffer responseData = this.bankClient.request(requestData, false);
       
       
       // Parse Response From Bank

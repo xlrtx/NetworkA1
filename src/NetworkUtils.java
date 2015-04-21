@@ -33,7 +33,7 @@ public class NetworkUtils implements ProtocolDefs {
     
     
     // Send Request, Get Response Data
-    ByteBuffer responseData = tcpClient.request(requestData);
+    ByteBuffer responseData = tcpClient.request(requestData, true);
     tcpClient.close();
     
     
@@ -83,7 +83,7 @@ public class NetworkUtils implements ProtocolDefs {
     
     
     // Send Request, Get Response Data
-    ByteBuffer responseData = tcpClient.request(requestData);
+    ByteBuffer responseData = tcpClient.request(requestData, true);
     tcpClient.close();
     
     
